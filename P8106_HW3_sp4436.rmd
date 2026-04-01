@@ -1,0 +1,77 @@
+---
+title: "P8106_HW3_sp4436"
+author: "Sukhman Parhar"
+date: "2026-04-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(ISLR)
+library(glmnet)
+library(caret)
+library(tidymodels)
+library(corrplot)
+library(ggplot2)
+library(plotmo)
+library(ggrepel)
+library(pls)
+library(pdp)
+library(earth)
+library(splines)
+library(mgcv)
+library(patchwork)
+library(readr)
+library(pROC)
+library(vip)
+library(discrim)
+library(MASS)
+library(klaR)
+```
+
+## Clean the data
+
+```{r}
+# Load in the data 
+auto <- read_csv("auto.csv")
+
+#str(auto_clean)
+#dim(auto)
+#summary(auto)
+
+auto_clean <- auto %>%
+  mutate(
+    mpg_cat = factor(mpg_cat, levels = c("low", "high")),
+    origin = factor(origin,
+                    levels = c(1, 2, 3),
+                    labels = c("American", "European", "Japanese")),
+    cylinders = factor(cylinders)
+  )
+```
+
+## Split the data
+
+```{r}
+set.seed(2)
+
+split <- initial_split(auto_clean, prop = 0.7, strata = mpg_cat)
+
+train_data <- training(split)
+test_data  <- testing(split)
+```
+
+## Question 1: Perform logistic regression analysis. Are there redundant predictors in your model? If so, identify them. If there are none, please provide an explanation.
+
+```{r}
+# Fit logistic regression
+glm.fit <- glm(mpg_cat ~ .,
+               data = train_data,
+               family = binomial(link = "logit"))
+
+# Summary
+summary(glm.fit)
+```
+
+###

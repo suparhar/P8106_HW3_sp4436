@@ -35,20 +35,20 @@ library(klaR)
 
 ```{r}
 # Load in the data 
-auto <- read_csv("auto.csv")
+auto <- read_csv("auto.csv") %>% 
+  na.omit() %>% 
+  as.data.frame()
 
-#str(auto_clean)
-#dim(auto)
-#summary(auto)
+# Remove cars with 3 cylinders
+auto <- auto[auto$cylinders != 3, ]
 
-auto_clean <- auto %>%
-  mutate(
-    mpg_cat = factor(mpg_cat, levels = c("low", "high")),
-    origin = factor(origin,
-                    levels = c(1, 2, 3),
-                    labels = c("American", "European", "Japanese")),
-    cylinders = factor(cylinders)
-  )
+# Convert Outcome (mpg_cat) to factor
+auto$mpg_cat <- factor(auto$mpg_cat)
+
+# Convert Origin to factor 
+auto$origin <- as.factor(auto$origin)
+
+summary(auto)
 ```
 
 ## Split the data
@@ -56,22 +56,135 @@ auto_clean <- auto %>%
 ```{r}
 set.seed(2)
 
-split <- initial_split(auto_clean, prop = 0.7, strata = mpg_cat)
+split <- initial_split(auto, prop = 0.7)
 
 train_data <- training(split)
 test_data  <- testing(split)
+
+# set up cross validation control
+ctrl <- trainControl(method = "cv", number = 10,
+                     summaryFunction = twoClassSummary,
+                     classProbs = TRUE)
 ```
 
 ## Question 1: Perform logistic regression analysis. Are there redundant predictors in your model? If so, identify them. If there are none, please provide an explanation.
 
 ```{r}
-# Fit logistic regression
-glm.fit <- glm(mpg_cat ~ .,
-               data = train_data,
-               family = binomial(link = "logit"))
-
-# Summary
+# Fit tuning GLM 
+glm.fit <- glm(mpg_cat ~ ., data = train_data, family = binomial)
 summary(glm.fit)
 ```
 
+```{r}
+set.seed(2)
+
+model.glm <- train(mpg_cat ~ ., 
+                   data = train_data,
+                   method = "glm",
+                   metric = "ROC",
+                   trControl = ctrl)
+# Summary
+summary(model.glm)
+
+print(model.glm)
+```
+
 ###
+Yes there are redundant predictors within this model. Only weight and year are statistically significant, while cylinders, displacement, horsepower, and acceleration have high p-values. These predictors are redundant because they measure  aspects of engine size and performance. Year and origin capture distinct information and are not redundant.
+
+## Question 2: Train a multivariate adaptive regression spline (MARS) model. Does the MARS model improve prediction performance compared to logistic regression?
+
+```{r, warning = FALSE, message = FALSE}
+# MARS
+set.seed(2)
+
+mars_grid <- expand.grid(degree = 1:3, 
+                         nprune = 2:20)
+
+model.mars <- train(mpg_cat ~ ., 
+                   data = train_data,
+                    method = "earth",
+                    tuneGrid = mars_grid,
+                    metric = "ROC",
+                    trControl = ctrl)
+
+# Best tuning parameters for MARS
+model.mars$bestTune
+
+# Plot CV performance for MARS
+plot(model.mars)
+
+# compare cross-validation performance
+res <- resamples(list(Logistic = model.glm,
+                      MARS = model.mars))
+
+summary(res)
+
+bwplot(res, metric = "ROC", main = "CV ROC: Logistic vs. MARS")
+```
+
+###
+The MARS model showed better performance, with a higher mean ROC (0.974955 vs. 0.970505), higher sensitivity (0.949451 vs. 0.928022), and higher specificity (0.947253 vs. 0.910440). MARS improves predictive performance compared to logistic regression.
+
+## Question 3: Perform linear discriminant analysis using the training data. Plot the linear discriminant(s).
+
+```{r}
+# Fit LDA model
+lda.fit <- lda(mpg_cat ~ ., data = train_data)
+
+# View model
+lda.fit
+
+plot(lda.fit)
+
+lda.fit$scaling
+```
+
+```{r}
+set.seed(2)
+
+model.lda <- train(mpg_cat ~ ., 
+                   data = train_data,
+                   method = "lda",
+                   metric = "ROC",
+                   trControl = ctrl)
+```
+
+## Question 4: Which model will you choose to predict the response variable? Plot its ROC curve and report the AUC.
+
+```{r}
+set.seed(2)
+
+# Compare all models
+res <- resamples(list(
+  Logistic = model.glm,
+  MARS = model.mars,
+  LDA = model.lda
+))
+
+summary(res)
+```
+
+#### MARS performed the best 
+
+```{r}
+# Predict probabilities (MARS)
+mars.probs <- predict(model.mars,
+                      newdata = test_data,
+                      type = "prob")[,2]
+
+# ROC curve
+roc.mars <- roc(test_data$mpg_cat, mars.probs)
+
+# AUC
+auc(roc.mars)
+
+# Plot ROC
+plot(roc.mars, legacy.axes = TRUE,
+     main = "ROC Curve - MARS Model")
+```
+
+###
+Area under the curve: 0.9795
+
+## Question 5: Select a probability threshold to classify observations and compute the confusion matrix for the final model you choose. Briefly interpret what the confusion matrix indicates about your model’s performance

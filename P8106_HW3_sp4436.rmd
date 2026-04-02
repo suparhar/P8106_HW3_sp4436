@@ -31,7 +31,7 @@ library(MASS)
 library(klaR)
 ```
 
-## Clean the data
+### Clean the data
 
 ```{r}
 # Load in the data 
@@ -51,7 +51,7 @@ auto$origin <- as.factor(auto$origin)
 summary(auto)
 ```
 
-## Split the data
+### Split the data
 
 ```{r}
 set.seed(2)
@@ -90,7 +90,10 @@ print(model.glm)
 ```
 
 ###
+
 Yes there are redundant predictors within this model. Only weight and year are statistically significant, while cylinders, displacement, horsepower, and acceleration have high p-values. These predictors are redundant because they measure  aspects of engine size and performance. Year and origin capture distinct information and are not redundant.
+
+<hr style="height:2px;border-width:0;color:black;background-color:black">
 
 ## Question 2: Train a multivariate adaptive regression spline (MARS) model. Does the MARS model improve prediction performance compared to logistic regression?
 
@@ -126,6 +129,8 @@ bwplot(res, metric = "ROC", main = "CV ROC: Logistic vs. MARS")
 ###
 The MARS model showed better performance, with a higher mean ROC (0.974955 vs. 0.970505), higher sensitivity (0.949451 vs. 0.928022), and higher specificity (0.947253 vs. 0.910440). MARS improves predictive performance compared to logistic regression.
 
+<hr style="height:2px;border-width:0;color:black;background-color:black">
+
 ## Question 3: Perform linear discriminant analysis using the training data. Plot the linear discriminant(s).
 
 ```{r}
@@ -149,6 +154,8 @@ model.lda <- train(mpg_cat ~ .,
                    metric = "ROC",
                    trControl = ctrl)
 ```
+
+<hr style="height:2px;border-width:0;color:black;background-color:black">
 
 ## Question 4: Which model will you choose to predict the response variable? Plot its ROC curve and report the AUC.
 
@@ -187,4 +194,28 @@ plot(roc.mars, legacy.axes = TRUE,
 ###
 Area under the curve: 0.9795
 
+<hr style="height:2px;border-width:0;color:black;background-color:black">
+
 ## Question 5: Select a probability threshold to classify observations and compute the confusion matrix for the final model you choose. Briefly interpret what the confusion matrix indicates about your model’s performance
+
+```{r}
+# Predict probabilities High
+test.probs <- predict(model.mars, newdata = test_data, type = "prob")
+
+test.pred.prob <- test.probs[, "high"]
+
+# Convert 
+test.pred <- rep("low", length(test.pred.prob))
+test.pred[test.pred.prob > 0.5] <- "high"
+
+# confusion matrix
+confusionMatrix(data = as.factor(test.pred), 
+                reference = test_data$mpg_cat, 
+                positive = "high")
+```
+
+###
+A  threshold of 0.5 was selected because choosing 0.5 assumes that the costs associated with False Positives (misclassifying a low-efficiency car as high) and False Negatives (failing to identify a high-efficiency car) are equal.
+
+Mars has an overall Accuracy of 0.9316. 
+The Sensitivity of 0.9483 means it can identify true high-mileage vehicles, while the Specificity of 0.9153 shows it can identify low-mileage vehicles. 

@@ -357,8 +357,8 @@ display: none;
 </div>
 
 
-<div id="clean-the-data" class="section level2">
-<h2>Clean the data</h2>
+<div id="clean-the-data" class="section level3">
+<h3>Clean the data</h3>
 <pre class="r"><code># Load in the data 
 auto &lt;- read_csv(&quot;auto.csv&quot;) %&gt;% 
   na.omit() %&gt;% 
@@ -396,8 +396,8 @@ summary(auto)</code></pre>
 ##  3rd Qu.:79.00                     
 ##  Max.   :82.00</code></pre>
 </div>
-<div id="split-the-data" class="section level2">
-<h2>Split the data</h2>
+<div id="split-the-data" class="section level3">
+<h3>Split the data</h3>
 <pre class="r"><code>set.seed(2)
 
 split &lt;- initial_split(auto, prop = 0.7)
@@ -497,6 +497,7 @@ year are statistically significant, while cylinders, displacement,
 horsepower, and acceleration have high p-values. These predictors are
 redundant because they measure aspects of engine size and performance.
 Year and origin capture distinct information and are not redundant.</p>
+<hr style="height:2px;border-width:0;color:black;background-color:black">
 </div>
 </div>
 <div id="question-2-train-a-multivariate-adaptive-regression-spline-mars-model.-does-the-mars-model-improve-prediction-performance-compared-to-logistic-regression" class="section level2">
@@ -557,6 +558,7 @@ summary(res)</code></pre>
 (0.974955 vs. 0.970505), higher sensitivity (0.949451 vs. 0.928022), and
 higher specificity (0.947253 vs. 0.910440). MARS improves predictive
 performance compared to logistic regression.</p>
+<hr style="height:2px;border-width:0;color:black;background-color:black">
 </div>
 </div>
 <div id="question-3-perform-linear-discriminant-analysis-using-the-training-data.-plot-the-linear-discriminants." class="section level2">
@@ -611,6 +613,7 @@ model.lda &lt;- train(mpg_cat ~ .,
                    method = &quot;lda&quot;,
                    metric = &quot;ROC&quot;,
                    trControl = ctrl)</code></pre>
+<hr style="height:2px;border-width:0;color:black;background-color:black">
 </div>
 <div id="question-4-which-model-will-you-choose-to-predict-the-response-variable-plot-its-roc-curve-and-report-the-auc." class="section level2">
 <h2>Question 4: Which model will you choose to predict the response
@@ -671,6 +674,7 @@ plot(roc.mars, legacy.axes = TRUE,
 <div id="section-2" class="section level3">
 <h3></h3>
 <p>Area under the curve: 0.9795</p>
+<hr style="height:2px;border-width:0;color:black;background-color:black">
 </div>
 </div>
 <div id="question-5-select-a-probability-threshold-to-classify-observations-and-compute-the-confusion-matrix-for-the-final-model-you-choose.-briefly-interpret-what-the-confusion-matrix-indicates-about-your-models-performance" class="section level2">
@@ -678,6 +682,56 @@ plot(roc.mars, legacy.axes = TRUE,
 and compute the confusion matrix for the final model you choose. Briefly
 interpret what the confusion matrix indicates about your model’s
 performance</h2>
+<pre class="r"><code># Predict probabilities High
+test.probs &lt;- predict(model.mars, newdata = test_data, type = &quot;prob&quot;)
+
+test.pred.prob &lt;- test.probs[, &quot;high&quot;]
+
+# Convert 
+test.pred &lt;- rep(&quot;low&quot;, length(test.pred.prob))
+test.pred[test.pred.prob &gt; 0.5] &lt;- &quot;high&quot;
+
+# confusion matrix
+confusionMatrix(data = as.factor(test.pred), 
+                reference = test_data$mpg_cat, 
+                positive = &quot;high&quot;)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction high low
+##       high   55   5
+##       low     3  54
+##                                         
+##                Accuracy : 0.9316        
+##                  95% CI : (0.8697, 0.97)
+##     No Information Rate : 0.5043        
+##     P-Value [Acc &gt; NIR] : &lt;2e-16        
+##                                         
+##                   Kappa : 0.8633        
+##                                         
+##  Mcnemar&#39;s Test P-Value : 0.7237        
+##                                         
+##             Sensitivity : 0.9483        
+##             Specificity : 0.9153        
+##          Pos Pred Value : 0.9167        
+##          Neg Pred Value : 0.9474        
+##              Prevalence : 0.4957        
+##          Detection Rate : 0.4701        
+##    Detection Prevalence : 0.5128        
+##       Balanced Accuracy : 0.9318        
+##                                         
+##        &#39;Positive&#39; Class : high          
+## </code></pre>
+<div id="section-3" class="section level3">
+<h3></h3>
+<p>A threshold of 0.5 was selected because choosing 0.5 assumes that the
+costs associated with False Positives (misclassifying a low-efficiency
+car as high) and False Negatives (failing to identify a high-efficiency
+car) are equal.</p>
+<p>Mars has an overall Accuracy of 0.9316. The Sensitivity of 0.9483
+means it can identify true high-mileage vehicles, while the Specificity
+of 0.9153 shows it can identify low-mileage vehicles.</p>
+</div>
 </div>
 
 

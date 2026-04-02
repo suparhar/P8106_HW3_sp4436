@@ -5,7 +5,7 @@ date: "2026-04-01"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r, warning = FALSE, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
@@ -31,9 +31,9 @@ library(MASS)
 library(klaR)
 ```
 
-### Clean the data
+#### Clean the data
 
-```{r}
+```{r, warning = FALSE, message = FALSE}
 # Load in the data 
 auto <- read_csv("auto.csv") %>% 
   na.omit() %>% 
@@ -48,10 +48,10 @@ auto$mpg_cat <- factor(auto$mpg_cat)
 # Convert Origin to factor 
 auto$origin <- as.factor(auto$origin)
 
-summary(auto)
+#summary(auto)
 ```
 
-### Split the data
+#### Split the data
 
 ```{r}
 set.seed(2)
@@ -67,7 +67,7 @@ ctrl <- trainControl(method = "cv", number = 10,
                      classProbs = TRUE)
 ```
 
-## Question 1: Perform logistic regression analysis. Are there redundant predictors in your model? If so, identify them. If there are none, please provide an explanation.
+#### Question 1: Perform logistic regression analysis. Are there redundant predictors in your model? If so, identify them. If there are none, please provide an explanation.
 
 ```{r}
 # Fit tuning GLM 
@@ -95,7 +95,7 @@ Yes there are redundant predictors within this model. Only weight and year are s
 
 <hr style="height:2px;border-width:0;color:black;background-color:black">
 
-## Question 2: Train a multivariate adaptive regression spline (MARS) model. Does the MARS model improve prediction performance compared to logistic regression?
+#### Question 2: Train a multivariate adaptive regression spline (MARS) model. Does the MARS model improve prediction performance compared to logistic regression?
 
 ```{r, warning = FALSE, message = FALSE}
 # MARS
@@ -131,7 +131,7 @@ The MARS model showed better performance, with a higher mean ROC (0.974955 vs. 0
 
 <hr style="height:2px;border-width:0;color:black;background-color:black">
 
-## Question 3: Perform linear discriminant analysis using the training data. Plot the linear discriminant(s).
+#### Question 3: Perform linear discriminant analysis using the training data. Plot the linear discriminant(s).
 
 ```{r}
 # Fit LDA model
@@ -157,7 +157,7 @@ model.lda <- train(mpg_cat ~ .,
 
 <hr style="height:2px;border-width:0;color:black;background-color:black">
 
-## Question 4: Which model will you choose to predict the response variable? Plot its ROC curve and report the AUC.
+#### Question 4: Which model will you choose to predict the response variable? Plot its ROC curve and report the AUC.
 
 ```{r}
 set.seed(2)
@@ -196,7 +196,7 @@ Area under the curve: 0.9795
 
 <hr style="height:2px;border-width:0;color:black;background-color:black">
 
-## Question 5: Select a probability threshold to classify observations and compute the confusion matrix for the final model you choose. Briefly interpret what the confusion matrix indicates about your model’s performance
+#### Question 5: Select a probability threshold to classify observations and compute the confusion matrix for the final model you choose. Briefly interpret what the confusion matrix indicates about your model’s performance
 
 ```{r}
 # Predict probabilities High

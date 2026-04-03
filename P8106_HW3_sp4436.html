@@ -540,8 +540,9 @@ plot(model.pen.logr, par.settings = myPar, xTrans = function(x) log(x))</code></
 <p>Yes there are redundant predictors within this model. Only weight,
 year, and cylinders are not redundant, while displacement, horsepower,
 acceleration, and if the car is European origin or Japanese origin are
-redundant. These predictors are redundant because they measure aspects
-of engine size and performance.</p>
+redundant. Predictors with coefficients shrunk to zero by LASSO are
+redundant in the presence of the correlated predictors (weight and
+cylinders)</p>
 <hr style="height:2px;border-width:0;color:black;background-color:black">
 <div id="question-2-train-a-multivariate-adaptive-regression-spline-mars-model.-does-the-mars-model-improve-prediction-performance-compared-to-logistic-regression" class="section level4">
 <h4>Question 2: Train a multivariate adaptive regression spline (MARS)
@@ -786,7 +787,13 @@ car as high) and False Negatives (failing to identify a high-efficiency
 car) are equal.</p>
 <p>Mars has an overall Accuracy of 0.9316. The Sensitivity of 0.9483
 means it can identify true high-mileage vehicles, while the Specificity
-of 0.9153 shows it can identify low-mileage vehicles.</p>
+of 0.9153 shows it can identify low-mileage vehicles. The no information
+rate of 0.5043 shows that high accuracy is not due to a high probability
+of being low or high MPG in the data set. This is reinforced by the
+P-value [accuracy &gt; no information rate], which is extremely close to
+0, indicating that the classifier works very well. We also see a kappa
+calue of 0.8633 which is close to one meaning this ia a good classifier.
+These show that this model performs well.</p>
 </div>
 
 

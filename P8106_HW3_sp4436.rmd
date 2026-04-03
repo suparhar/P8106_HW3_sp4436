@@ -121,7 +121,8 @@ coef(model.pen.logr$finalModel, model.pen.logr$bestTune$lambda)
 
 ###
 
-Yes there are redundant predictors within this model. Only weight, year, and cylinders are not redundant, while displacement, horsepower, acceleration, and if the car is European origin or Japanese origin are redundant. These predictors are redundant because they measure  aspects of engine size and performance. 
+Yes there are redundant predictors within this model. Only weight, year, and cylinders are not redundant, while displacement, horsepower, acceleration, and if the car is European origin or Japanese origin are redundant. Predictors with coefficients shrunk to zero by LASSO are redundant in the presence of the correlated predictors (weight and cylinders)
+
 
 <hr style="height:2px;border-width:0;color:black;background-color:black">
 
@@ -252,4 +253,4 @@ confusionMatrix(data = as.factor(test.pred),
 A  threshold of 0.5 was selected because choosing 0.5 assumes that the costs associated with False Positives (misclassifying a low-efficiency car as high) and False Negatives (failing to identify a high-efficiency car) are equal.
 
 Mars has an overall Accuracy of 0.9316. 
-The Sensitivity of 0.9483 means it can identify true high-mileage vehicles, while the Specificity of 0.9153 shows it can identify low-mileage vehicles. 
+The Sensitivity of 0.9483 means it can identify true high-mileage vehicles, while the Specificity of 0.9153 shows it can identify low-mileage vehicles. The no information rate of 0.5043 shows that high accuracy is not due to a high probability of being low or high MPG in the data set. This is reinforced by the P-value [accuracy > no information rate], which is extremely close to 0, indicating that the classifier works very well. We also see a kappa calue of 0.8633 which is close to one meaning this ia a good classifier. These show that this model performs well. 
